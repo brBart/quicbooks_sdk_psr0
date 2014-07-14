@@ -1,6 +1,7 @@
 <?php
 
 namespace QBX\Exception;
+use Exception;
 
 /**
  * Represents an IdsException.
