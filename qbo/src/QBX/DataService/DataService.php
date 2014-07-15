@@ -14,6 +14,7 @@ use QBX\Data\IPPIntuitEntity;
 use QBX\Utility\Serialization\XmlObjectSerializer;
 use QBX\Core\RestCalls\RequestParameters;
 use com\mikebevz\xsd2php\Php2Xml;
+use QBX\Core\CoreConstants;
 use Exception;
 
 /**
