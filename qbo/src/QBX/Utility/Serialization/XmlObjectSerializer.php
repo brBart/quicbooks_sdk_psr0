@@ -2,8 +2,8 @@
 
 namespace QBX\Utility\Serialization;
 
-use QBX\Utility\Serialization\IEntitySerializer;
-
+use com\mikebevz\xsd2php\Php2Xml;
+use com\mikebevz\xsd2php\Bind;
 /**
  * Xml Serialize(r) to serialize and de serialize.
  */
@@ -30,7 +30,7 @@ class XmlObjectSerializer extends IEntitySerializer
             return FALSE;
         }
 
-        $php2xml = new com\mikebevz\xsd2php\Php2Xml(PHP_CLASS_PREFIX);
+        $php2xml = new Php2Xml(PHP_CLASS_PREFIX);
         $php2xml->overrideAsSingleNamespace = 'http://schema.intuit.com/finance/v3';
 
         try {
@@ -70,7 +70,7 @@ class XmlObjectSerializer extends IEntitySerializer
     private static function PhpObjFromXml($className, $xmlStr)
     {
         $phpObj = new $className;
-        $bind = new com\mikebevz\xsd2php\Bind(PHP_CLASS_PREFIX);
+        $bind = new Bind(PHP_CLASS_PREFIX);
         $bind->overrideAsSingleNamespace = 'http://schema.intuit.com/finance/v3';
         $bind->bindXml($xmlStr, $phpObj);
         return $phpObj;
