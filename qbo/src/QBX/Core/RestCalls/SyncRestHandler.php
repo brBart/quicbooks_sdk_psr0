@@ -10,6 +10,7 @@ use QBX\Exception\IdsException;
 use QBX\Core\IntuitServicesType;
 use QBX\Diagnostics\TraceLevel;
 use Exception;
+use OAuth;
 
 /**
  * SyncRestHandler contains the logic for preparing the REST request, calls REST services and returns the response.
