@@ -8,6 +8,7 @@ use QBX\Core\ServiceContext;
 use QBX\Utility\IntuitErrorHandler;
 use QBX\Exception\IdsException;
 use QBX\Core\IntuitServicesType;
+use QBX\Diagnostics\TraceLevel;
 use Exception;
 
 /**
