@@ -2,9 +2,13 @@
 
 namespace QBX\Core\RestCalls;
 
-use QBX\Core\RestCalls\RestHandler;
-use QBX\Core\RestCalls\FaultHandler;
+use QBX\Core\CoreConstants;
+use QBX\Core\CoreHelper;
+use QBX\Core\ServiceContext;
 use QBX\Utility\IntuitErrorHandler;
+use QBX\Exception\IdsException;
+use QBX\Core\IntuitServicesType;
+use Exception;
 
 /**
  * SyncRestHandler contains the logic for preparing the REST request, calls REST services and returns the response.
@@ -14,7 +18,7 @@ class SyncRestHandler extends RestHandler
 
     /**
      * The context
-     * @var ServiceContext 
+     * @var ServiceContext
      */
     private $serviceContext;
 
@@ -23,7 +27,7 @@ class SyncRestHandler extends RestHandler
      *
      * @param ServiceContext $context The context
      */
-    public function SyncRestHandler($context)
+    public function __construct($context)
     {
         parent::__construct($context);
         $this->context = $context;
@@ -113,26 +117,26 @@ class SyncRestHandler extends RestHandler
             foreach ($response_headers_rows as $header) {
                 $keyval = explode(":", $header);
                 if (2 == count($keyval))
-                        $response_headers[$keyval[0]] = trim($keyval[1]);
+                    $response_headers[$keyval[0]] = trim($keyval[1]);
 
                 if (FALSE !== strpos($header, 'HTTP'))
-                        list(, $response_code, ) = explode(' ', $header);
+                    list(, $response_code, ) = explode(' ', $header);
             }
 
             // Decompress, if applicable
             if ('QBO' == $this->context->serviceType ||
-                    'QBD' == $this->context->serviceType) {
+                'QBD' == $this->context->serviceType) {
                 // Even if accept-encoding is set to deflate, server never (as far as we know) actually chooses
                 // to respond with Content-Encoding: deflate.  Thus, the inspection of 'Content-Encoding' response
                 // header rather than assuming that server will respond with encoding specified by accept-encoding
                 if ($this->ResponseCompressor &&
-                        $response_headers &&
-                        array_key_exists('Content-Encoding', $response_headers)) {
+                    $response_headers &&
+                    array_key_exists('Content-Encoding', $response_headers)) {
                     $response_xml = $this->ResponseCompressor->Decompress($response_xml, $response_headers);
                 }
             }
         } catch (Exception $e) {
-            
+
         }
 
         return array($response_code, $response_xml, $response_headers);
@@ -170,7 +174,7 @@ class SyncRestHandler extends RestHandler
             $requestUri = $this->context->baseserviceURL . $requestParameters->ResourceUri;
         }
         else {
-            
+
         }
 
         //minorVersion support
@@ -191,7 +195,7 @@ class SyncRestHandler extends RestHandler
 
         $httpHeaders = array();
         if ('QBO' == $this->context->serviceType ||
-                'QBD' == $this->context->serviceType) {
+            'QBD' == $this->context->serviceType) {
             // IDS call
             $httpHeaders = array('host' => parse_url($requestUri, PHP_URL_HOST),
                 'user-agent' => CoreConstants::USERAGENT,
@@ -204,10 +208,10 @@ class SyncRestHandler extends RestHandler
             $this->RequestLogging->LogPlatformRequests($requestBody, $requestUri, $httpHeaders, TRUE);
 
             if ($requestBody && $this->RequestCompressor)
-                    $this->RequestCompressor->Compress($httpHeaders, $requestBody);
+                $this->RequestCompressor->Compress($httpHeaders, $requestBody);
 
             if ($this->ResponseCompressor)
-                    $this->ResponseCompressor->PrepareDecompress($httpHeaders);
+                $this->ResponseCompressor->PrepareDecompress($httpHeaders);
         }
         else {
             // IPP call
@@ -216,9 +220,9 @@ class SyncRestHandler extends RestHandler
 
         try {
             if ('POST' == $requestParameters->HttpVerbType)
-                    $OauthMethod = OAUTH_HTTP_METHOD_POST;
+                $OauthMethod = OAUTH_HTTP_METHOD_POST;
             else if ('GET' == $requestParameters->HttpVerbType)
-                    $OauthMethod = OAUTH_HTTP_METHOD_GET;
+                $OauthMethod = OAUTH_HTTP_METHOD_GET;
 
             $oauth->fetch($requestUri, $requestBody, $OauthMethod, $httpHeaders);
         } catch (OAuthException $e) {
