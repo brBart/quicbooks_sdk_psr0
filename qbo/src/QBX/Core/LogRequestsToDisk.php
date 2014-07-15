@@ -2,6 +2,10 @@
 
 namespace QBX\Core;
 
+use QBX\Exception\IdsException;
+use DirectoryIterator;
+use Exception;
+
 /**
  * Logs API Requests/Responses To Disk
  */
