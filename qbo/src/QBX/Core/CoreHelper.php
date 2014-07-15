@@ -2,10 +2,16 @@
 
 namespace QBX\Core;
 
-use QBX\Core\CoreConstants;
-use QBX\Core\LogRequestsToDisk;
+use QBX\Core\RestCalls\Compression\DeflateCompressor;
+use QBX\Core\RestCalls\Compression\GZipCompressor;
 use QBX\Utility\Serialization\XmlObjectSerializer;
+use QBX\Utility\Serialization\JsonObjectSerializer;
 use QBX\Core\RestCalls\EncodingFixer;
+use QBX\Diagnostics\TraceLevel;
+use QBX\Core\Configuration\SerializationFormat;
+use QBX\Core\Configuration\CompressionFormat;
+use QBX\Exception\IdsException;
+use Exception;
 
 /**
  * Helper class.
@@ -137,12 +143,12 @@ class CoreHelper
         $requestLogger = NULL;
         try {
             if (isset($serviceContext->IppConfiguration) &&
-                    isset($serviceContext->IppConfiguration->Logger) &&
-                    isset($serviceContext->IppConfiguration->Logger->RequestLog) &&
-                    isset($serviceContext->IppConfiguration->Logger->RequestLog->EnableRequestResponseLogging) &&
-                    isset($serviceContext->IppConfiguration->Logger->RequestLog->ServiceRequestLoggingLocation)) {
+                isset($serviceContext->IppConfiguration->Logger) &&
+                isset($serviceContext->IppConfiguration->Logger->RequestLog) &&
+                isset($serviceContext->IppConfiguration->Logger->RequestLog->EnableRequestResponseLogging) &&
+                isset($serviceContext->IppConfiguration->Logger->RequestLog->ServiceRequestLoggingLocation)) {
                 $requestLogger = new LogRequestsToDisk(
-                        $serviceContext->IppConfiguration->Logger->RequestLog->EnableRequestResponseLogging, $serviceContext->IppConfiguration->Logger->RequestLog->ServiceRequestLoggingLocation);
+                    $serviceContext->IppConfiguration->Logger->RequestLog->EnableRequestResponseLogging, $serviceContext->IppConfiguration->Logger->RequestLog->ServiceRequestLoggingLocation);
             }
             else {
                 $requestLogger = new LogRequestsToDisk(false, null);

@@ -3,10 +3,13 @@
 namespace QBX\Core;
 
 use QBX\Exception\SdkExceptions\InvalidTokenException;
-use QBX\Core\CoreConstants;
+use QBX\Exception\SdkExceptions\InvalidRealmException;
+use QBX\Exception\IdsException;
 use QBX\Core\Configuration\IppConfiguration;
 use QBX\Core\Configuration\LocalConfigReader;
-use QBX\Security\OAuthRequestValidator;
+use QBX\Security\RequestValidator;
+use QBX\Diagnostics\TraceLevel;
+use Exception;
 
 /**
  * This Enumeration specifies which Intuit service to connect to. It is  Either QBO or QBD.
@@ -48,55 +51,55 @@ class ServiceContext
 
     /**
      * The Realm Id.
-     * @var string 
+     * @var string
      */
     public $realmId;
 
     /**
      * Intuit Service Type(QBO/QB).
-     * @var string 
+     * @var string
      */
     public $serviceType;
 
     /**
      * Base Uri for IDS Service Call.
-     * @var string 
+     * @var string
      */
     public $baseserviceURL;
 
     /**
      * Application Token.
-     * @var string 
+     * @var string
      */
     private $appToken;
 
     /**
      * this flag indicates if static create methods of this class has been invoked.
-     * @var string 
+     * @var string
      */
     private $isCreateMethod;
 
     /**
      * Temporary storage for serialization and compression values for request and reponse.
-     * @var string 
+     * @var string
      */
     private $messageValues;
 
     /**
      * The Request validator
-     * @var RequestValidator 
+     * @var RequestValidator
      */
     public $requestValidator;
 
     /**
      * The Minor Version that would that returns additinoal fields from build v71
-     * @var MinorVersion 
+     * @var MinorVersion
      */
     public $minorVersion;
 
     /**
      * Gets or sets the Ipp configuration.
-     * @var IppConfiguration 
+     * @var IppConfiguration
      */
     public $IppConfiguration;
 
@@ -159,8 +162,8 @@ class ServiceContext
 
         if ($this->serviceType == IntuitServicesType::QBD) {
             if ($this->IppConfiguration &&
-                    $this->IppConfiguration->BaseUrl &&
-                    $this->IppConfiguration->BaseUrl->Qbd) {
+                $this->IppConfiguration->BaseUrl &&
+                $this->IppConfiguration->BaseUrl->Qbd) {
                 $baseurl = $this->IppConfiguration->BaseUrl->Qbd . implode(CoreConstants::SLASH_CHAR, array(CoreConstants::VERSION)) . CoreConstants::SLASH_CHAR;
             }
 
@@ -172,8 +175,8 @@ class ServiceContext
         }
         else if ($this->serviceType == IntuitServicesType::QBO) {
             if ($this->IppConfiguration &&
-                    $this->IppConfiguration->BaseUrl &&
-                    $this->IppConfiguration->BaseUrl->Qbo) {
+                $this->IppConfiguration->BaseUrl &&
+                $this->IppConfiguration->BaseUrl->Qbo) {
                 $baseurl = $this->IppConfiguration->BaseUrl->Qbo . implode(CoreConstants::SLASH_CHAR, array(CoreConstants::VERSION)) . CoreConstants::SLASH_CHAR;
             }
 
@@ -185,8 +188,8 @@ class ServiceContext
         }
         else if ($this->serviceType == IntuitServicesType::IPP) {
             if ($this->IppConfiguration &&
-                    $this->IppConfiguration->BaseUrl &&
-                    $this->IppConfiguration->BaseUrl->Ipp) {
+                $this->IppConfiguration->BaseUrl &&
+                $this->IppConfiguration->BaseUrl->Ipp) {
                 $baseurl = $this->IppConfiguration->BaseUrl->Ipp;
             }
 
