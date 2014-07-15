@@ -2,9 +2,8 @@
 
 namespace QBX\Security;
 
-use QBX\Security\RequestValidator;
+use QBX\Exception\SdkExceptions\InvalidTokenException;
 
-require_once(PATH_SDK_ROOT . 'Exception/SdkExceptions/InvalidTokenException.php');
 
 /**
  * OAuth implementation conforming to RequestValidator base class 
