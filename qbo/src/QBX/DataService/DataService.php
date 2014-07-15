@@ -13,6 +13,7 @@ use QBX\Core\RestCalls\SyncRestHandler;
 use QBX\Data\IPPIntuitEntity;
 use QBX\Utility\Serialization\XmlObjectSerializer;
 use QBX\Core\RestCalls\RequestParameters;
+use com\mikebevz\xsd2php\Php2Xml;
 use Exception;
 
 /**
@@ -84,7 +85,7 @@ class DataService
             return FALSE;
         }
 
-        $php2xml = new com\mikebevz\xsd2php\Php2Xml(PHP_CLASS_PREFIX);
+        $php2xml = new Php2Xml(PHP_CLASS_PREFIX);
         $php2xml->overrideAsSingleNamespace = 'http://schema.intuit.com/finance/v3';
 
         try {
