@@ -12,6 +12,7 @@ use QBX\Diagnostics\TraceLevel;
 use Exception;
 use OAuth;
 
+
 /**
  * SyncRestHandler contains the logic for preparing the REST request, calls REST services and returns the response.
  */
@@ -189,7 +190,7 @@ class SyncRestHandler extends RestHandler
             }
         }
 
-        $oauth = new OAuth($this->context->requestValidator->ConsumerKey, $this->context->requestValidator->ConsumerSecret);
+        $oauth = new \OAuth($this->context->requestValidator->ConsumerKey, $this->context->requestValidator->ConsumerSecret);
         $oauth->setToken($this->context->requestValidator->AccessToken, $this->context->requestValidator->AccessTokenSecret);
         $oauth->enableDebug();
         $oauth->setAuthType(OAUTH_AUTH_TYPE_AUTHORIZATION);
