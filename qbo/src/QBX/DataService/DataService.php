@@ -3,11 +3,17 @@
 namespace QBX\DataService;
 
 use QBX\Core\CoreHelper;
-use QBX\DataService\Batch;
-use QBX\DataService\IntuitCDCResponse;
-use QBX\Data\IntuitRestServiceDef\IPPAttachableResponse;
-use QBX\Data\IntuitRestServiceDef\IPPFault;
-use QBX\Data\IntuitRestServiceDef\IPPError;
+use QBX\Exception\SdkExceptions\InvalidParameterException;
+use QBX\Diagnostics\TraceLevel;
+use QBX\Exception\IdsException;
+use QBX\Core\ServiceContext;
+use QBX\Core\Interfaces\IRestHandler;
+use QBX\Utility\Serialization\IEntitySerializer;
+use QBX\Core\RestCalls\SyncRestHandler;
+use QBX\Data\IPPIntuitEntity;
+use QBX\Utility\Serialization\XmlObjectSerializer;
+use QBX\Core\RestCalls\RequestParameters;
+use Exception;
 
 /**
  * This file contains DataService performs CRUD operations on IPP REST APIs.
@@ -17,25 +23,25 @@ class DataService
 
     /**
      * The Service context object.
-     * @var ServiceContext 
+     * @var ServiceContext
      */
     private $serviceContext;
 
     /**
      * Rest Request Handler.
-     * @var IRestHandler 
+     * @var IRestHandler
      */
     private $restHandler;
 
     /**
      * Serializer needs to be used.
-     * @var IEntitySerializer 
+     * @var IEntitySerializer
      */
     private $responseSerializer;
 
     /**
      * If true, indicates a desire to echo verbose output
-     * @var bool 
+     * @var bool
      */
     private $verbose;
 
@@ -68,7 +74,7 @@ class DataService
      * Marshall a POPO object to XML, presumably for inclusion on an IPP v3 API call
      *
      * @param POPOObject $phpObj inbound POPO object
-     * @return string XML output derived from POPO object 
+     * @return string XML output derived from POPO object
      */
     private function getXmlFromObj($phpObj)
     {
@@ -106,12 +112,12 @@ class DataService
      * Clean a POPO class name (like 'IPPClass') to be an IPP v3 Entity name (like 'Class')
      *
      * @param string $phpClassName POPO class name
-     * @return string Intuit Entity name 
+     * @return string Intuit Entity name
      */
     private static function cleanPhpClassNameToIntuitEntityName($phpClassName)
     {
         if (0 == strpos($phpClassName, PHP_CLASS_PREFIX))
-                return substr($phpClassName, strlen(PHP_CLASS_PREFIX));
+            return substr($phpClassName, strlen(PHP_CLASS_PREFIX));
 
         return NULL;
     }
@@ -120,7 +126,7 @@ class DataService
      * Updates an entity under the specified realm. The realm must be set in the context.
      *
      * @param IPPIntuitEntity $entity Entity to Update.
-     * @return IPPIntuitEntity Returns an updated version of the entity with updated identifier and sync token. 
+     * @return IPPIntuitEntity Returns an updated version of the entity with updated identifier and sync token.
      */
     public function Update($entity)
     {
@@ -137,12 +143,12 @@ class DataService
         // Builds resource Uri
         // Handle some special cases
         if ((strtolower('preferences') == strtolower($urlResource)) &&
-                (IntuitServicesType::QBO == $this->serviceContext->serviceType)) {
+            (IntuitServicesType::QBO == $this->serviceContext->serviceType)) {
             // URL format for *QBO* prefs request is different than URL format for *QBD* prefs request
             $uri = implode(CoreConstants::SLASH_CHAR, array('company', $this->serviceContext->realmId, $urlResource));
         }
         else if ((strtolower('company') == strtolower($urlResource)) &&
-                (IntuitServicesType::QBD == $this->serviceContext->serviceType)) {
+            (IntuitServicesType::QBD == $this->serviceContext->serviceType)) {
             // URL format for *QBD* companyinfo request is different than URL format for *QBO* companyinfo request
             $urlResource = 'companyInfo';
             $uri = implode(CoreConstants::SLASH_CHAR, array('company', $this->serviceContext->realmId, $urlResource . '?operation=update'));
@@ -165,7 +171,7 @@ class DataService
             // gets response
             list($responseCode, $responseBody) = $restRequestHandler->GetResponse($requestParameters, $httpsPostBody, NULL);
         } catch (Exception $e) {
-            
+
         }
 
         CoreHelper::CheckNullResponseAndThrowException($responseBody);
@@ -184,7 +190,7 @@ class DataService
      * Returns an entity under the specified realm. The realm must be set in the context.
      *
      * @param object $entity Entity to Find
-     * @return IPPIntuitEntity Returns an entity of specified Id. 
+     * @return IPPIntuitEntity Returns an entity of specified Id.
      */
     public function FindById($entity)
     {
@@ -214,7 +220,7 @@ class DataService
             return NULL;
         }
         else if ((strtolower('company') == strtolower($urlResource)) ||
-                (strtolower('companyinfo') == strtolower($urlResource))) {
+            (strtolower('companyinfo') == strtolower($urlResource))) {
             // FindById semantics for CompanyInfo are unusual.  Handle via special case. 
             $allEntities = $this->FindAll('Company');
             foreach ($allEntities as $oneCompany) {
@@ -261,7 +267,7 @@ class DataService
      * Returns an entity under the specified realm. The realm must be set in the context.
      *
      * @param object $entity Entity to Find
-     * @return IPPIntuitEntity Returns an entity of specified Id. 
+     * @return IPPIntuitEntity Returns an entity of specified Id.
      */
     public function Retrieve($entity)
     {
@@ -272,7 +278,7 @@ class DataService
      * Creates an entity under the specified realm. The realm must be set in the context.
      *
      * @param IPPIntuitEntity $entity Entity to Create.
-     * @return IPPIntuitEntity Returns the created version of the entity. 
+     * @return IPPIntuitEntity Returns the created version of the entity.
      */
     public function Add($entity)
     {
@@ -302,7 +308,7 @@ class DataService
             // gets response
             list($responseCode, $responseBody) = $restRequestHandler->GetResponse($requestParameters, $httpsPostBody, NULL);
         } catch (Exception $e) {
-            
+
         }
 
         CoreHelper::CheckNullResponseAndThrowException($responseBody);
@@ -350,7 +356,7 @@ class DataService
             // gets response
             list($responseCode, $responseBody) = $restRequestHandler->GetResponse($requestParameters, $httpsPostBody, NULL);
         } catch (Exception $e) {
-            
+
         }
 
         CoreHelper::CheckNullResponseAndThrowException($responseBody);
@@ -399,7 +405,7 @@ class DataService
             // gets response
             list($responseCode, $responseBody) = $restRequestHandler->GetResponse($requestParameters, $httpsPostBody, NULL);
         } catch (Exception $e) {
-            
+
         }
 
         CoreHelper::CheckNullResponseAndThrowException($responseBody);
@@ -422,7 +428,7 @@ class DataService
      * @param string $fileName Filename to use for this file
      * @param string $mimeType MIME type to send in the HTTP Headers
      * @param IPPAttachable $objAttachable entity describing the attachement
-     * @return array Returns an array of entities fulfilling the query. 
+     * @return array Returns an array of entities fulfilling the query.
      */
     public function Upload($imgBits, $fileName, $mimeType, $objAttachable)
     {
@@ -466,7 +472,7 @@ class DataService
             // gets response
             list($responseCode, $responseBody) = $restRequestHandler->GetResponse($requestParameters, $dataMultipart, NULL);
         } catch (Exception $e) {
-            
+
         }
 
         CoreHelper::CheckNullResponseAndThrowException($responseBody);
@@ -486,7 +492,7 @@ class DataService
      * Returns an downloaded entity under the specified realm. The realm must be set in the context.
      *
      * @param object $entity Entity to Find
-     * @return IPPIntuitEntity Returns an entity of specified Id. 
+     * @return IPPIntuitEntity Returns an entity of specified Id.
      */
     public function Download($entity)
     {
@@ -499,14 +505,14 @@ class DataService
      * @param string $query Query to issue
      * @param string $pageNumber Starting page number
      * @param string $pageSize Page size
-     * @return array Returns an array of entities fulfilling the query. 
+     * @return array Returns an array of entities fulfilling the query.
      */
     public function Query($query, $pageNumber = 0, $pageSize = 500)
     {
         $this->serviceContext->IppConfiguration->Logger->RequestLog->Log(TraceLevel::Info, "Called Method Query.");
 
         if ('QBO' == $this->serviceContext->serviceType)
-                $httpsContentType = CoreConstants::CONTENTTYPE_APPLICATIONTEXT;
+            $httpsContentType = CoreConstants::CONTENTTYPE_APPLICATIONTEXT;
         else $httpsContentType = CoreConstants::CONTENTTYPE_TEXTPLAIN;
 
         $httpsUri = implode(CoreConstants::SLASH_CHAR, array('company', $this->serviceContext->realmId, 'query'));
@@ -520,7 +526,7 @@ class DataService
         try {
             $responseXmlObj = simplexml_load_string($responseBody);
             if ($responseXmlObj && $responseXmlObj->QueryResponse)
-                    $parsedResponseBody = $this->responseSerializer->Deserialize($responseXmlObj->QueryResponse->asXML(), FALSE);
+                $parsedResponseBody = $this->responseSerializer->Deserialize($responseXmlObj->QueryResponse->asXML(), FALSE);
         } catch (Exception $e) {
             return NULL;
         }
@@ -531,7 +537,7 @@ class DataService
      * Retrieves specified entity based passed page number and page size
      *
      * @param string $urlResource Entity type to Find
-     * @return array Returns an array of entities of specified type. 
+     * @return array Returns an array of entities of specified type.
      */
     public function FindAll($entityName, $pageNumber = 0, $pageSize = 500)
     {
@@ -541,10 +547,10 @@ class DataService
 
         // Handle some special cases
         if (strtolower('company') == strtolower($entityName))
-                $entityName = 'CompanyInfo';
+            $entityName = 'CompanyInfo';
 
         if ('QBO' == $this->serviceContext->serviceType)
-                $httpsContentType = CoreConstants::CONTENTTYPE_APPLICATIONTEXT;
+            $httpsContentType = CoreConstants::CONTENTTYPE_APPLICATIONTEXT;
         else $httpsContentType = CoreConstants::CONTENTTYPE_TEXTPLAIN;
 
         $httpsUri = implode(CoreConstants::SLASH_CHAR, array('company', $this->serviceContext->realmId, 'query'));
@@ -615,7 +621,7 @@ class DataService
             // gets response
             list($responseCode, $responseBody) = $restRequestHandler->GetResponse($requestParameters, NULL, NULL);
         } catch (Exception $e) {
-            
+
         }
 
         CoreHelper::CheckNullResponseAndThrowException($responseBody);
